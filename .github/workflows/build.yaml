@@ -1,0 +1,55 @@
+name: Pure Rust project build on Linux
+on:
+  push:
+    branches:
+      - main
+
+env:
+  DEBUG: 'napi:*'
+  MACOSX_DEPLOYMENT_TARGET: '10.13'
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        targets:
+          [
+            'x86_64-apple-darwin',
+            'aarch64-apple-darwin',
+            'x86_64-pc-windows-msvc',
+            'i686-pc-windows-msvc',
+            'aarch64-pc-windows-msvc',
+            'x86_64-unknown-linux-gnu',
+            'aarch64-unknown-linux-gnu',
+            'x86_64-unknown-linux-musl',
+            'aarch64-unknown-linux-musl',
+            'armv7-unknown-linux-gnueabihf',
+            'aarch64-linux-android',
+            'armv7-linux-androideabi',
+          ]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          target: ${{ matrix.targets }}
+      - uses: Swatinem/rust-cache@v2
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+          cache: 'yarn'
+      - name: Install ziglang
+        uses: goto-bus-stop/setup-zig@v1
+        with:
+          version: 0.10.0
+      - run: cargo install cargo-xwin
+      - run: yarn install
+      - run: yarn workspace @napi-cross-build/01-pure-rust build --zig --target ${{ matrix.targets }}
+      - uses: actions/upload-artifact@v3
+        with:
+          name: bindings-${{ matrix.targets }}
+          path: 01-pure-rust/*.node
+          if-no-files-found: error
