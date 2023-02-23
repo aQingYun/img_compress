@@ -1,0 +1,21 @@
+[package]
+edition = "2021"
+name = "wps_img_compress"
+version = "0.0.0"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+# Default enable napi4 feature, see https://nodejs.org/api/n-api.html#node-api-version-matrix
+napi = { version = "2.10.14", default-features = false, features = ["napi4"] }
+napi-derive = "2.10.1"
+oxipng = "8.0.0"
+svgcleaner = "0.9.5"
+svgdom = "0.10.5"
+
+[build-dependencies]
+napi-build = "2.0.1"
+
+[profile.release]
+lto = true
